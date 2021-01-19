@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class AutoRaceCar : Car
 {
     [Range(0, 50)]
@@ -20,13 +21,20 @@ public class AutoRaceCar : Car
         }
 
         originSpeed = moveSpeed;
+        rigid = GetComponent<Rigidbody>();
+        moveDir = transform.forward;
+        isGameFinished = false;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
         RayUpdate();
-        RayProcess();
+
+        if(!isGameFinished)
+        {
+            RayProcess();
+        }
     }
 
     void RayUpdate()
@@ -50,21 +58,19 @@ public class AutoRaceCar : Car
 
         if (Physics.Raycast(rays[0], out rayHits[0], RayRange))
         {
-            moveSpeed = originSpeed * 0.5f;
-            isFrontHit = true;
+            if(rayHits[0].collider.gameObject.tag == "Wall")
+                isFrontHit = true;
         }
-        else
-            moveSpeed = originSpeed;
 
         if (Physics.Raycast(rays[1], out rayHits[1], RayRange))
         {
-            //Curve(false);
-            isLeftHit = true;
+            if (rayHits[1].collider.gameObject.tag == "Wall")
+                isLeftHit = true;
         }
         if (Physics.Raycast(rays[2], out rayHits[2], RayRange))
         {
-            //Curve(true);
-            isRightHit = true;
+            if (rayHits[2].collider.gameObject.tag == "Wall")
+                isRightHit = true;
         }
 
         if (!isLeftHit && !isRightHit)
@@ -75,11 +81,11 @@ public class AutoRaceCar : Car
         {
             if(rayHits[1].distance > rayHits[2].distance && isFrontHit)
             {
-                Curve(true);
+                Curve(false);
             }
             else if (rayHits[1].distance < rayHits[2].distance && isFrontHit)
             {
-                Curve(false);
+                Curve(true);
             }
         }
         else if(isLeftHit)
@@ -91,6 +97,11 @@ public class AutoRaceCar : Car
             Curve(true);
         }
 
+        if(isFrontHit || isLeftHit || isRightHit)
+        {
+            rigid.velocity = rigid.velocity * 0.9f;
+        }
+
         Move(true);
     }
 
@@ -100,5 +111,20 @@ public class AutoRaceCar : Car
         Debug.DrawRay(rays[0].origin, rays[0].direction * RayRange, Color.red);
         Debug.DrawRay(rays[1].origin, rays[1].direction * RayRange, Color.yellow);
         Debug.DrawRay(rays[2].origin, rays[2].direction * RayRange, Color.green);
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.tag == "FinishLine")
+        {
+            Debug.Log("Finish Line Exit!");
+            lapCnt++;
+
+            if(lapCnt == 3)
+            {
+                isGameFinished = true;
+                raceScene.IsGameEnd = true;
+            }
+        }
     }
 }

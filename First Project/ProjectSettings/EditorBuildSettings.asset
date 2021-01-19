@@ -4,5 +4,20 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/TitleScene.unity
+    guid: 8b160c4d6fd1e8f4784cc483c91bfbbe
+  - enabled: 1
+    path: Assets/Scenes/Race.unity
+    guid: dc1e110ae16b51d49863fef59567abb0
+  - enabled: 1
+    path: Assets/Scenes/2D Project.unity
+    guid: 828f9adee1b3cdd4bad13aebc377f51b
+  - enabled: 1
+    path: Assets/Scenes/FlappyBird.unity
+    guid: d12b9800de4f0ad4db880314609648eb
+  - enabled: 1
+    path: Assets/Scenes/Defence.unity
+    guid: 5613d337e84c98b44bad8b69c3ad58f0
   m_configObjects: {}
