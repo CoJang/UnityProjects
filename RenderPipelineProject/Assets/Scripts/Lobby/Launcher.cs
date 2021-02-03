@@ -16,6 +16,7 @@ public class Launcher : MonoBehaviourPunCallbacks
     [SerializeField] Transform playerListContent;
     [SerializeField] GameObject roomListItemPrefab;
     [SerializeField] GameObject playerListItemPrefab;
+    [SerializeField] GameObject startGameButton;
 
     private void Awake()
     {
@@ -25,7 +26,9 @@ public class Launcher : MonoBehaviourPunCallbacks
     void Start()
     {
         Debug.Log("Connecting to Master...");
-        PhotonNetwork.ConnectUsingSettings(); 
+        PhotonNetwork.ConnectUsingSettings();
+
+        PhotonNetwork.AutomaticallySyncScene = true;
     }
 
     public override void OnConnectedToMaster()
@@ -59,12 +62,24 @@ public class Launcher : MonoBehaviourPunCallbacks
 
         Player[] players = PhotonNetwork.PlayerList;
 
+        foreach(Transform child in playerListContent)
+        {
+            Destroy(child.gameObject);
+        }
+
         // 안된다면 using.System.Linq;
         // players.Length -> player.Count() 로 바꿀 것.
         for (int i = 0; i < players.Length; i++)
         {
             Instantiate(playerListItemPrefab, playerListContent).GetComponent<PlayerListItem>().Setup(players[i]);
         }
+
+        startGameButton.SetActive(PhotonNetwork.IsMasterClient);
+    }
+
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        startGameButton.SetActive(PhotonNetwork.IsMasterClient);
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
@@ -93,8 +108,18 @@ public class Launcher : MonoBehaviourPunCallbacks
 
         for(int i = 0; i < roomList.Count; i++)
         {
+            if(roomList[i].RemovedFromList)
+            {
+                continue;
+            }
+
             Instantiate(roomListItemPrefab, roomListContent).GetComponent<RoomListItem>().Setup(roomList[i]);
         }
+    }
+
+    public void StartGame()
+    {
+        PhotonNetwork.LoadLevel("SampleScene");
     }
 
     // 방을 클릭 시 발생
@@ -107,5 +132,10 @@ public class Launcher : MonoBehaviourPunCallbacks
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         Instantiate(playerListItemPrefab, playerListContent).GetComponent<PlayerListItem>().Setup(newPlayer);
+    }
+
+    public void QuitApplication()
+    {
+        Application.Quit();
     }
 }
