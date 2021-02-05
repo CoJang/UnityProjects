@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     const float maxHealth = 100.0f;
     float currentHealth = maxHealth;
 
+    [HideInInspector] public Camera playerCamera;
     Rigidbody rb;
     PhotonView PV;
     PlayerManager playerManager;
@@ -56,19 +57,33 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         Look();
         Move();
         Jump();
+        SwapWeapon();
 
-        for(int i = 0; i < items.Length; i++)
+        if (Input.GetMouseButtonDown(0))
         {
-            if(Input.GetKeyDown((i + 1).ToString()))
+            items[itemIndex].Use();
+        }
+
+        if(transform.position.y < - 10f)
+        {
+            Die();
+        }
+    }
+
+    void SwapWeapon()
+    {
+        for (int i = 0; i < items.Length; i++)
+        {
+            if (Input.GetKeyDown((i + 1).ToString()))
             {
                 EquipItem(i);
                 break;
             }
         }
 
-        if(Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+        if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
         {
-            if(itemIndex >= items.Length - 1)
+            if (itemIndex >= items.Length - 1)
             {
                 EquipItem(0);
             }
@@ -77,7 +92,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
                 EquipItem(itemIndex + 1);
             }
         }
-        else if(Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+        else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
         {
             if (itemIndex <= items.Length - 1)
             {
@@ -88,16 +103,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
                 EquipItem(itemIndex - 1);
             }
         }
-
-        if(Input.GetMouseButtonDown(0))
-        {
-            items[itemIndex].Use();
-        }
     }
 
     void Jump()
     {
-
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        {
+            rb.AddForce(transform.up * jumpForce);
+        }
     }
 
     void Move()
@@ -106,21 +119,24 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
         moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * (Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : walkSpeed),
             ref smoothMoveVelocity, smoothTime);
-
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            rb.AddForce(transform.up * jumpForce);
-        }
     }
 
     void Look()
     {
-        transform.Rotate(Vector3.up, Input.GetAxisRaw("Mouse X") * mouseSensitivity);
+        //transform.Rotate(Vector3.up, Input.GetAxisRaw("Mouse X") * mouseSensitivity);
+        //verticalLookRotation += Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
+        //verticalLookRotation = Mathf.Clamp(verticalLookRotation, -90f, 90f);
 
-        verticalLookRotation += Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
-        verticalLookRotation = Mathf.Clamp(verticalLookRotation, -90f, 90f);
+        //cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
 
-        cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
+        Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+        ray.origin = playerCamera.transform.position;
+
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            transform.LookAt(hit.point);
+        }
+
     }
 
     public void SetGroundedState(bool grounded)
@@ -192,5 +208,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     void Die()
     {
         playerManager.Die();
+    }
+
+    public void BindPlayerCamera(Camera camera)
+    {
+        playerCamera = camera;
     }
 }

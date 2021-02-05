@@ -8,4 +8,6 @@ public class Gun : Item
     {
 
     }
+
+    public GameObject bulletImpactPrefab;
 }

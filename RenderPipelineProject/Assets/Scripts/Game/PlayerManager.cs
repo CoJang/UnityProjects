@@ -6,6 +6,7 @@ using System.IO;
 
 public class PlayerManager : MonoBehaviour
 {
+    [SerializeField] GameObject topdownCamera;
     PhotonView PV;
     GameObject controller;
 
@@ -24,8 +25,15 @@ public class PlayerManager : MonoBehaviour
 
     void CreateController()
     {
-        controller = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "PlayerController"),
-                        new Vector3(3.5f, 0, 1.5f), Quaternion.identity, 0, new object[] { PV.ViewID });
+        Transform spawnPoint = SpawnManager.Instance.GetSpawnPoint();
+
+        controller = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "NoCamPlayerController"),
+                        spawnPoint.position, spawnPoint.rotation, 0, new object[] { PV.ViewID });
+
+        GameObject newCam = Instantiate(topdownCamera, spawnPoint.position, Quaternion.Euler(60, 0, 0));
+
+        newCam.GetComponent<CameraFollow>().SetTarget(controller.transform);
+        controller.GetComponent<PlayerController>().BindPlayerCamera(newCam.GetComponentInChildren<Camera>());
     }
 
     public void Die()
