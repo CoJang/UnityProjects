@@ -1397,7 +1397,7 @@ GameObject:
   - component: {fileID: 8085825836986382842}
   m_Layer: 0
   m_Name: NoCamPlayerController
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1509,7 +1509,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fdd17187b3162042a6db75c61c3ee3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraHolder: {fileID: 0}
   mouseSensitivity: 3
   sprintSpeed: 6
   walkSpeed: 3
@@ -1519,6 +1518,7 @@ MonoBehaviour:
   - {fileID: 2538122738863577974}
   - {fileID: 8688900399462156303}
   playerCamera: {fileID: 0}
+  RotationSpeed: 500
 --- !u!136 &8085825836986382842
 CapsuleCollider:
   m_ObjectHideFlags: 0

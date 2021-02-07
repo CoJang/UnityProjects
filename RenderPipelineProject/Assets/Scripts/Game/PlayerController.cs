@@ -7,18 +7,15 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
-    [SerializeField] GameObject cameraHolder;
-
     [SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
 
     [SerializeField] Item[] items;
     int itemIndex;
     int preItemIndex = -1;
 
-    float verticalLookRotation;
     bool isGrounded;
-    Vector3 smoothMoveVelocity;
     Vector3 moveAmount;
+    Vector3 smoothMoveVelocity;
 
     const float maxHealth = 100.0f;
     float currentHealth = maxHealth;
@@ -27,11 +24,20 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     Rigidbody rb;
     PhotonView PV;
     PlayerManager playerManager;
+    Animator anim;
+    Transform spine;
+
+    public float RotationSpeed = 500.0f;
+    float MaxYAxis = 1.5f;
+    float MaxRotation = 30.0f;
+    Vector3 relativeVec = new Vector3(0, -40, -100);
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         PV = GetComponent<PhotonView>();
+        anim = GetComponent<Animator>();
+        spine = anim.GetBoneTransform(HumanBodyBones.Spine);
 
         playerManager = PhotonView.Find((int)PV.InstantiationData[0]).GetComponent<PlayerManager>();
     }
@@ -54,7 +60,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (!PV.IsMine)
             return;
 
-        Look();
+        
         Move();
         Jump();
         SwapWeapon();
@@ -68,6 +74,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         {
             Die();
         }
+    }
+
+    private void LateUpdate()
+    {
+        Look();
     }
 
     void SwapWeapon()
@@ -123,18 +134,28 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     void Look()
     {
-        //transform.Rotate(Vector3.up, Input.GetAxisRaw("Mouse X") * mouseSensitivity);
-        //verticalLookRotation += Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
-        //verticalLookRotation = Mathf.Clamp(verticalLookRotation, -90f, 90f);
-
-        //cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
-
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
         ray.origin = playerCamera.transform.position;
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            transform.LookAt(hit.point);
+            if(PV.IsMine && hit.collider.tag == "Player") 
+                return;
+
+            Vector3 target = hit.point;
+            target.y = Mathf.Clamp(target.y, 0, MaxYAxis);
+            spine.LookAt(target);
+
+            Quaternion spineRot = spine.rotation * Quaternion.Euler(relativeVec);
+            spine.rotation = spineRot;
+            float RotY = spine.rotation.eulerAngles.y - transform.rotation.eulerAngles.y;
+
+            if (Mathf.Abs(RotY) >= MaxRotation)
+            {
+                transform.Rotate(new Vector3(0, RotY, 0), Space.World);
+                spine.Rotate(new Vector3(0, -RotY, 0), Space.World);
+            }
+
         }
 
     }
