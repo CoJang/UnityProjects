@@ -855,6 +855,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4503294844348999669}
+  - component: {fileID: 2447947681445619819}
   m_Layer: 0
   m_Name: Bip001 Spine
   m_TagString: Untagged
@@ -877,6 +878,22 @@ Transform:
   m_Father: {fileID: 4503294844348999661}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2447947681445619819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4503294844348840853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
 --- !u!1 &4503294844348840855
 GameObject:
   m_ObjectHideFlags: 0
@@ -1744,29 +1761,32 @@ MonoBehaviour:
   ShowParameterInspector: 1
   m_SynchronizeParameters:
   - Type: 4
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: IsAiming
   - Type: 1
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: Vertical
   - Type: 1
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: Horizontal
   - Type: 1
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: Velocity
   - Type: 4
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: IsReloading
   - Type: 4
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: IsSwapWeapon
+  - Type: 9
+    SynchronizeType: 0
+    Name: Swap
   m_SynchronizeLayers:
-  - SynchronizeType: 2
+  - SynchronizeType: 1
     LayerIndex: 0
-  - SynchronizeType: 2
+  - SynchronizeType: 1
     LayerIndex: 1
-  - SynchronizeType: 2
+  - SynchronizeType: 1
     LayerIndex: 2
 --- !u!1 &4503294844348840887
 GameObject:

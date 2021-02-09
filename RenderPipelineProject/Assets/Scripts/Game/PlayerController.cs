@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
-public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
+public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObservable
 {
     [SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
 
@@ -34,6 +34,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     float DecreaseFactor = 0.1f;
     float MaxAnimVelocity = 1.0f;
 
+    Vector3 realPos = Vector3.zero;
+    Vector3 realRot = Vector3.zero;
+    //Quaternion realRot = Quaternion.identity;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -52,7 +56,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         }
         else
         {
-            Destroy(GetComponentInChildren<Camera>().gameObject);
+            //Destroy(GetComponentInChildren<Camera>().gameObject);
             Destroy(rb);
         }
     }
@@ -60,7 +64,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     private void Update()
     {
         if (!PV.IsMine)
+        {
             return;
+        }
         
         Move();
         Jump();
@@ -88,6 +94,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     private void LateUpdate()
     {
         Look();
+
+        if(!PV.IsMine)
+        {
+            spine.position = Vector3.Lerp(spine.position, realPos, 0.1f);
+            spine.eulerAngles = Vector3.Lerp(spine.eulerAngles, realRot, 0.1f);
+            Debug.Log("spine.localRotation :" + spine.eulerAngles);
+            Debug.Log("spine.realRot :" + realRot);
+        }
     }
 
     void SwapWeapon()
@@ -182,6 +196,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     void Look()
     {
+        if (!PV.IsMine) return;
+
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
         ray.origin = playerCamera.transform.position;
 
@@ -226,11 +242,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         if (_index == preItemIndex)
             return;
-        anim.SetBool("IsSwapWeapon", true);
+
+        anim.SetTrigger("Swap");
 
         itemIndex = _index;
 
-        items[itemIndex].itemGameObject.SetActive(true);
+        items[itemIndex].itemGameObject.SetActive(false);
         anim.SetLayerWeight(itemIndex, 1);
         
         if(preItemIndex != -1)
@@ -248,7 +265,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
         }
 
-        anim.SetBool("IsSwapWeapon", false);
     }
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
@@ -292,6 +308,21 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     public void OnSwapFinish()
     {
+        items[itemIndex].itemGameObject.SetActive(true);
+    }
 
+    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if(stream.IsWriting)
+        {
+            stream.SendNext(spine.position);
+            stream.SendNext(spine.eulerAngles);
+        }
+        else
+        {
+            realPos = (Vector3)stream.ReceiveNext();
+            //realRot = (Quaternion)stream.ReceiveNext();
+            realRot = (Vector3)stream.ReceiveNext();
+        }
     }
 }
