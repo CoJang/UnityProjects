@@ -27,10 +27,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     Animator anim;
     Transform spine;
 
-    public float RotationSpeed = 500.0f;
     float MaxYAxis = 1.5f;
-    float MaxRotation = 30.0f;
-    Vector3 relativeVec = new Vector3(0, -40, -100);
+    Vector3 relativeVec = new Vector3(0, -55, -100);
+
+    Vector2 AnimControlVelocity = Vector2.zero;
+    float DecreaseFactor = 0.1f;
+    float MaxAnimVelocity = 1.0f;
 
     private void Awake()
     {
@@ -59,7 +61,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         if (!PV.IsMine)
             return;
-
         
         Move();
         Jump();
@@ -68,6 +69,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (Input.GetMouseButtonDown(0))
         {
             items[itemIndex].Use();
+        }
+        if(Input.GetKeyDown(KeyCode.R) && !anim.GetBool("IsReloading"))
+        {
+            anim.SetBool("IsReloading", true);
+        }
+        else
+        {
+            anim.SetBool("IsReloading", false);
         }
 
         if(transform.position.y < - 10f)
@@ -130,6 +139,45 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
         moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * (Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : walkSpeed),
             ref smoothMoveVelocity, smoothTime);
+
+        AnimControlVelocity.x += moveAmount.x * Time.deltaTime * 2;
+        AnimControlVelocity.y += moveAmount.z * Time.deltaTime;
+
+        AnimControlVelocity.x = Mathf.Clamp(AnimControlVelocity.x, -MaxAnimVelocity, MaxAnimVelocity);
+        AnimControlVelocity.y = Mathf.Clamp(AnimControlVelocity.y, -MaxAnimVelocity, MaxAnimVelocity);
+
+        if(moveDir.x == 0 && AnimControlVelocity.x > 0)
+        {
+             AnimControlVelocity.x -= DecreaseFactor;
+
+            if (AnimControlVelocity.x < 0)
+                AnimControlVelocity.x = 0;
+        }
+        else if (moveDir.x == 0 && AnimControlVelocity.x < 0)
+        {
+            AnimControlVelocity.x += DecreaseFactor;
+
+            if (AnimControlVelocity.x > 0)
+                AnimControlVelocity.x = 0;
+        }
+
+        if (moveDir.z == 0 && AnimControlVelocity.y > 0)
+        {
+            AnimControlVelocity.y -= DecreaseFactor;
+
+            if (AnimControlVelocity.y < 0)
+                AnimControlVelocity.y = 0;
+        }
+        else if (moveDir.z == 0 && AnimControlVelocity.y < 0)
+        {
+            AnimControlVelocity.y += DecreaseFactor;
+
+            if (AnimControlVelocity.y > 0)
+                AnimControlVelocity.y = 0;
+        }
+
+        anim.SetFloat("Horizontal", AnimControlVelocity.x);
+        anim.SetFloat("Vertical", AnimControlVelocity.y);
     }
 
     void Look()
@@ -145,16 +193,17 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             Vector3 target = hit.point;
             target.y = Mathf.Clamp(target.y, 0, MaxYAxis);
             spine.LookAt(target);
+            transform.LookAt(new Vector3(target.x, 0, target.z));
 
             Quaternion spineRot = spine.rotation * Quaternion.Euler(relativeVec);
             spine.rotation = spineRot;
-            float RotY = spine.rotation.eulerAngles.y - transform.rotation.eulerAngles.y;
+            //float RotY = spine.rotation.eulerAngles.y - transform.rotation.eulerAngles.y;
 
-            if (Mathf.Abs(RotY) >= MaxRotation)
-            {
-                transform.Rotate(new Vector3(0, RotY, 0), Space.World);
-                spine.Rotate(new Vector3(0, -RotY, 0), Space.World);
-            }
+            //if (Mathf.Abs(RotY) >= MaxRotation)
+            //{
+            //    transform.Rotate(new Vector3(0, RotY, 0), Space.World);
+            //    spine.Rotate(new Vector3(0, -RotY, 0), Space.World);
+            //}
 
         }
 
@@ -177,14 +226,17 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         if (_index == preItemIndex)
             return;
+        anim.SetBool("IsSwapWeapon", true);
 
         itemIndex = _index;
 
         items[itemIndex].itemGameObject.SetActive(true);
+        anim.SetLayerWeight(itemIndex, 1);
         
         if(preItemIndex != -1)
         {
             items[preItemIndex].itemGameObject.SetActive(false);
+            anim.SetLayerWeight(preItemIndex, 0);
         }
 
         preItemIndex = itemIndex;
@@ -195,6 +247,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             hash.Add("itemIndex", itemIndex);
             PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
         }
+
+        anim.SetBool("IsSwapWeapon", false);
     }
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
@@ -234,5 +288,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     public void BindPlayerCamera(Camera camera)
     {
         playerCamera = camera;
+    }
+
+    public void OnSwapFinish()
+    {
+
     }
 }
