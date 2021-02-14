@@ -7,7 +7,7 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObservable
 {
-    [SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
+    [SerializeField] float sprintSpeed, walkSpeed, jumpForce, smoothTime;
 
     [SerializeField] Item[] items;
     int itemIndex;
@@ -27,16 +27,15 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObse
     Animator anim;
     Transform spine;
 
-    float MaxYAxis = 1.5f;
+    float MaxYAxis = 2.5f;
     Vector3 relativeVec = new Vector3(0, -55, -100);
 
     Vector2 AnimControlVelocity = Vector2.zero;
     float DecreaseFactor = 0.1f;
     float MaxAnimVelocity = 1.0f;
 
-    Vector3 realPos = Vector3.zero;
-    Vector3 realRot = Vector3.zero;
-    //Quaternion realRot = Quaternion.identity;
+    // For Spine Rotation Sync
+    Vector3 lookTarget = Vector3.zero;
 
     private void Awake()
     {
@@ -76,6 +75,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObse
         {
             items[itemIndex].Use();
         }
+
         if(Input.GetKeyDown(KeyCode.R) && !anim.GetBool("IsReloading"))
         {
             anim.SetBool("IsReloading", true);
@@ -95,13 +95,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObse
     {
         Look();
 
-        if(!PV.IsMine)
-        {
-            spine.position = Vector3.Lerp(spine.position, realPos, 0.1f);
-            spine.eulerAngles = Vector3.Lerp(spine.eulerAngles, realRot, 0.1f);
-            Debug.Log("spine.localRotation :" + spine.eulerAngles);
-            Debug.Log("spine.realRot :" + realRot);
-        }
     }
 
     void SwapWeapon()
@@ -196,7 +189,13 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObse
 
     void Look()
     {
-        if (!PV.IsMine) return;
+        if (!PV.IsMine)
+        {
+            spine.LookAt(lookTarget);
+            Quaternion spineRot = spine.rotation * Quaternion.Euler(relativeVec);
+            spine.rotation = spineRot;
+            return;
+        }
 
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
         ray.origin = playerCamera.transform.position;
@@ -206,21 +205,13 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObse
             if(PV.IsMine && hit.collider.tag == "Player") 
                 return;
 
-            Vector3 target = hit.point;
-            target.y = Mathf.Clamp(target.y, 0, MaxYAxis);
-            spine.LookAt(target);
-            transform.LookAt(new Vector3(target.x, 0, target.z));
+            lookTarget = hit.point;
+            lookTarget.y = Mathf.Clamp(lookTarget.y, 0, MaxYAxis);
+            spine.LookAt(lookTarget);
+            transform.LookAt(new Vector3(lookTarget.x, 0, lookTarget.z));
 
             Quaternion spineRot = spine.rotation * Quaternion.Euler(relativeVec);
             spine.rotation = spineRot;
-            //float RotY = spine.rotation.eulerAngles.y - transform.rotation.eulerAngles.y;
-
-            //if (Mathf.Abs(RotY) >= MaxRotation)
-            //{
-            //    transform.Rotate(new Vector3(0, RotY, 0), Space.World);
-            //    spine.Rotate(new Vector3(0, -RotY, 0), Space.World);
-            //}
-
         }
 
     }
@@ -315,14 +306,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObse
     {
         if(stream.IsWriting)
         {
-            stream.SendNext(spine.position);
-            stream.SendNext(spine.eulerAngles);
+            stream.SendNext(lookTarget);
         }
         else
         {
-            realPos = (Vector3)stream.ReceiveNext();
-            //realRot = (Quaternion)stream.ReceiveNext();
-            realRot = (Vector3)stream.ReceiveNext();
+            lookTarget = (Vector3)stream.ReceiveNext();
         }
     }
 }

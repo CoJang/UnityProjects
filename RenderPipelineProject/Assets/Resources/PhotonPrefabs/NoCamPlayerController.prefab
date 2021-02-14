@@ -855,7 +855,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4503294844348999669}
-  - component: {fileID: 2447947681445619819}
   m_Layer: 0
   m_Name: Bip001 Spine
   m_TagString: Untagged
@@ -878,22 +877,6 @@ Transform:
   m_Father: {fileID: 4503294844348999661}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2447947681445619819
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4503294844348840853}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 1
 --- !u!1 &4503294844348840855
 GameObject:
   m_ObjectHideFlags: 0
@@ -1674,7 +1657,9 @@ MonoBehaviour:
   OwnershipTransfer: 0
   ObservedComponents:
   - {fileID: 855132326272874404}
+  - {fileID: 5958583583584193664}
   - {fileID: 5968350495970021621}
+  - {fileID: 0}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -1722,7 +1707,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fdd17187b3162042a6db75c61c3ee3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mouseSensitivity: 3
   sprintSpeed: 6
   walkSpeed: 3
   jumpForce: 150
