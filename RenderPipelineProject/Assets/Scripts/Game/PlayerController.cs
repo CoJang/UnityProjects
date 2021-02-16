@@ -313,4 +313,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IPunObse
             lookTarget = (Vector3)stream.ReceiveNext();
         }
     }
+
+    public Player GetPhotonViewOwner()
+    {
+        return PV.Owner;
+    }
 }

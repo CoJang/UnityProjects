@@ -67,4 +67,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   topdownCamera: {fileID: 5522112677916777177, guid: 1e1ecd68296a4d849955a319e01feada, type: 3}
-  crossHairPrefab: {fileID: 0}

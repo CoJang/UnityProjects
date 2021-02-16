@@ -33,8 +33,12 @@ public class SingleShotGun : Gun
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            if (PV.IsMine && hit.collider.tag == "Player")
+            // if Shooter == HitObject
+            if (hit.collider.gameObject.GetComponent<PlayerController>()?.GetPhotonViewOwner()
+                == PV.Owner)
+            {
                 return;
+            }
 
             hit.collider.gameObject.GetComponent<IDamageable>()?.TakeDamage(((GunInfo)itemInfo).Damage);
             PV.RPC("RPC_Shoot", RpcTarget.All, hit.point, hit.normal);
@@ -44,7 +48,6 @@ public class SingleShotGun : Gun
     [PunRPC]
     void RPC_Shoot(Vector3 hitPosition, Vector3 hitNormal)
     {
-        //Debug.Log(hitPosition);
         Collider[] colliders = Physics.OverlapSphere(hitPosition, 0.3f);
 
         if(colliders.Length != 0)
